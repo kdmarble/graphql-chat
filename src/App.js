@@ -1,24 +1,42 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import { useQuery } from "@apollo/client";
+import {
+  UserQuery,
+  UsersQuery,
+  SignInMutation,
+  SignUpMutation
+} from "./schema/user";
+import { useNavigate, Link } from "@reach/router";
+import Frontpage from "./Frontpage";
+import Navbar from "./Navbar";
+import "./App.css";
 
 function App() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  const { loading, error, data } = useQuery(UsersQuery);
+
+  if (!token) {
+    return (
+      <>
+        <Navbar />
+        <Frontpage />
+      </>
+    );
+  }
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>`Error! ${error.message}`</div>;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
+    <div>
+      <Navbar />
+      {data.users.map(user => (
+        <p key={user.id}>
+          {user.username} {user.id}
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      ))}
     </div>
   );
 }
