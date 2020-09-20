@@ -18,6 +18,24 @@ const UserQuery = gql`
   }
 `;
 
+const QueryMe = gql`
+  query {
+    me {
+      id
+      username
+      email
+      role
+      messages {
+        id
+        text
+        senderMail
+        receiverMail
+        createdAt
+      }
+    }
+  }
+`;
+
 const UsersQuery = gql`
   query {
     users {
@@ -52,4 +70,4 @@ const SignInMutation = gql`
   }
 `;
 
-export { UserQuery, UsersQuery, SignUpMutation, SignInMutation };
+export { UserQuery, QueryMe, UsersQuery, SignUpMutation, SignInMutation };

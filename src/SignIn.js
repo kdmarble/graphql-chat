@@ -73,7 +73,7 @@ function SignIn() {
           Enter Chat
         </Button>
         {mutationLoading && <p>Loading...</p>}
-        {mutationError && <p>Error</p>}
+        {mutationError && <p>{mutationError.message}</p>}
       </Paper>
     </>
   );

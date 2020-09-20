@@ -24,7 +24,7 @@ function Navbar(props) {
   const token = localStorage.getItem("token");
 
   return (
-    <AppBar position="static">
+    <AppBar position="fixed">
       <Toolbar variant="dense">
         <Typography className={classes.title} variant="h6">
           Chatty
