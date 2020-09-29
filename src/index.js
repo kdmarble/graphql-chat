@@ -4,20 +4,32 @@ import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
-  createHttpLink
+  createHttpLink,
+  split
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "apollo-link-error";
+import { WebSocketLink } from "@apollo/client/link/ws";
+import { getMainDefinition } from "@apollo/client/utilities";
 import { Router, navigate } from "@reach/router";
 import "./index.css";
 import App from "./App";
 import SignIn from "./SignIn";
 import Signup from "./Signup";
 
+const wsLink = new WebSocketLink({
+  uri: "ws://localhost:8000/graphql",
+  options: {
+    reconnect: true
+  }
+});
+
 const logoutLink = onError(({ networkError }) => {
   if (networkError.statusCode === 400) {
     localStorage.removeItem("token");
-    navigate("/login");
+    navigate("/");
+  } else {
+    navigate("/");
   }
 });
 
@@ -44,8 +56,22 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
+const httpLinkWithMiddlware = logoutLink.concat(authLink.concat(httpLink));
+
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query);
+    return (
+      definition.kind === "OperationDefinition" &&
+      definition.operation === "subscription"
+    );
+  },
+  wsLink,
+  httpLinkWithMiddlware
+);
+
 const client = new ApolloClient({
-  link: logoutLink.concat(authLink.concat(httpLink)),
+  link: splitLink,
   cache: new InMemoryCache()
 });
 

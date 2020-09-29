@@ -8,7 +8,8 @@ import {
   MessageSubscription,
   UserTypingSubscription
 } from "./schema/message";
-import { useQuery, useMutation } from "@apollo/client";
+import { useQuery, useMutation, useSubscription } from "@apollo/client";
+import { render } from "@testing-library/react";
 
 const Message = props => {
   const chatBox = useRef(null);
@@ -19,47 +20,35 @@ const Message = props => {
 
   const [timer, setTimer] = useState(null);
 
-  const { loading, error, data } = useQuery(MessageQuery);
+  const [newMessage, setNewMessage] = useState(null);
+
+  const { subscribeToMore, loading, error, data: messageData } = useQuery(
+    MessageQuery
+  );
 
   const [
     createMessage,
     { loading: messageLoading, error: messageError }
   ] = useMutation(CreateMessageMutation);
 
+  const messageSub = useSubscription(MessageSubscription, {
+    variables: {
+      receiverMail: props.receiverMail
+    },
+    onSubscriptionData: data => {
+      setNewMessage(data.subscriptionData.data.messageCreated);
+    }
+  });
+
   const handleShow = () => {
     props.setStyle();
   };
 
-  // useEffect(() => {
-  //   props.message.subscribeToMore({
-  //     document: MessageSubscription,
-  //     variables: {
-  //       receiverMail: props.email
-  //     },
-  //     updateQuery: (prev, { subscriptionData }) => {
-  //       if (!subscriptionData.data) return prev;
-  //       const msg = subscriptionData.data.newMessage;
-  //       if (prev.messages.find(x => x.id === msg.id)) {
-  //         return prev;
-  //       }
-  //       return { ...prev, messages: [...prev.messages, msg] };
-  //     }
-  //   });
-  //   props.message.subscribeToMore({
-  //     document: UserTypingSubscription,
-  //     variables: {
-  //       receiverMail: props.email
-  //     },
-  //     updateQuery: (prev, { subscriptionData }) => {
-  //       if (!subscriptionData.data) return prev;
-  //       const user = subscriptionData.data.userTyping;
-  //       setUser(user);
-  //     }
-  //   });
-  //   if (chatBox.current) {
-  //     scrollToBottom();
-  //   }
-  // });
+  useEffect(() => {
+    if (chatBox.current) {
+      scrollToBottom();
+    }
+  });
 
   const scrollToBottom = () => {
     chatBox.current.scrollIntoView();
@@ -125,7 +114,7 @@ const Message = props => {
         </div>
       </div>
       <div className="all-messages">
-        {data.messages.edges.map(item =>
+        {messageData.messages.edges.map(item =>
           (item.senderMail === email && item.receiverMail === receiverMail) ||
           (item.senderMail === receiverMail && item.receiverMail === email) ? (
             <div
@@ -139,6 +128,21 @@ const Message = props => {
           ) : (
             ""
           )
+        )}
+        {newMessage && (
+          <div
+            key={newMessage.id}
+            className={
+              newMessage.email === receiverMail ? "receiver" : "sender"
+            }
+          >
+            <div className="sender-name">{newMessage.username}</div>
+            {newMessage.text}{" "}
+            <span className="time">
+              {" "}
+              {moment(newMessage.createdAt).fromNow()}
+            </span>
+          </div>
         )}
         {userLeft && userLeft === receiverMail ? (
           <div>{receiverName} has left the chat. </div>

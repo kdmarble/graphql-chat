@@ -53,8 +53,8 @@ p {
 
 .personal-chat {
   width: 100%;
+  padding-bottom: 50px;
   background-color: ghostwhite;
-  height: 100%;
 }
 
 .chats-header {
@@ -84,7 +84,6 @@ p {
 
 .all-messages {
   min-height: calc(100vh - 60px);
-  margin-top: 55px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
